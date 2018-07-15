@@ -3,7 +3,7 @@
 printf "query: "
 read query
 
-maxPages=50
+maxPages="${MAX_PAGES:-50}"
 i=1
 queryEncoded=$(node -p "encodeURIComponent('$query')")
 filename=$(echo $query | sed 's/ /-/')
