@@ -60,3 +60,33 @@ dev_multi=$(echo "sqrt($dev_multi/$total)" | bc)
 echo "Single-Core Score:  $avg_single ($dev_single stddev)"
 echo "Multi-Core Score:   $avg_multi ($dev_multi stddev)"
 echo "Scores are based on ${total} results."
+
+while read single && read multi; do
+  echo "$single" >> "${query}_single.txt"
+  echo "$multi" >> "${query}_multi.txt"
+done < <(echo "$scores")
+
+sort -rn < "${query}_single.txt" > "${query}_single_sorted.txt"
+sort -rn < "${query}_multi.txt" > "${query}_multi_sorted.txt"
+
+echo "${query} (single),${query} (multi)" > "${query}_unsorted.csv"
+paste "${query}_single.txt" "${query}_multi.txt" | tr '\t' ',' > "${query}_unsorted.csv"
+./plot_values.gp "${query}_unsorted.csv" "${query}_unsorted.png"
+
+echo "${query} (single),${query} (multi)" > "${query}_sorted_independent.csv"
+paste "${query}_single_sorted.txt" "${query}_multi_sorted.txt" | tr '\t' ',' >> "${query}_sorted_independent.csv"
+./plot_values.gp "${query}_sorted_independent.csv" "${query}_sorted_independent.png"
+
+temp=$(mktemp)
+
+paste "${query}_single.txt" "${query}_multi.txt" | tr '\t' ',' > "${temp}"
+
+echo "${query} (single),${query} (multi)" > "${query}_sorted_by_single.csv"
+sort -rnt, -k1 "${temp}" >> "${query}_sorted_by_single.csv"
+./plot_values.gp "${query}_sorted_by_single.csv" "${query}_sorted_by_single.png"
+
+echo "${query} (single),${query} (multi)" > "${query}_sorted_by_multi.csv"
+sort -rnt, -k2 "${temp}" >> "${query}_sorted_by_multi.csv"
+./plot_values.gp "${query}_sorted_by_multi.csv" "${query}_sorted_by_multi.png"
+
+rm "${temp}"
